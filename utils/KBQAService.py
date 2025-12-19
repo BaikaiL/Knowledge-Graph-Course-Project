@@ -11,7 +11,7 @@ class KBQAService:
     知识问答服务类：负责将自然语言转换为Cypher查询，并生成回答。
     """
 
-    def __init__(self, connection_manager, llm_client, model_name="gpt-3.5-turbo"):
+    def __init__(self, connection_manager, llm_client, model_name="qwen-max"):
         """
         :param connection_manager: 你的 Neo4jConnectionManager 实例
         :param llm_client: 初始化好的 LLM 客户端 (如 OpenAI 实例)
@@ -21,44 +21,56 @@ class KBQAService:
         self.client = llm_client
         self.model_name = model_name
 
-        # 【重要】定义你的图谱 Schema
-        # 请根据你实际构建的节点标签和关系类型修改此处
+        # 【重要】适配你实际图数据库的Schema（中文标签+关系）
         self.schema_definition = """
-        图谱包含以下节点标签(Labels)：
-        1. Tea (代茶饮): 属性 [name, efficacy(功效), taste(性味), usage(用法)]
-        2. Ingredient (药材/成分): 属性 [name, property(归经)]
-        3. Season (季节): 属性 [name] (如: 春季, 夏季)
-        4. Symptom (症状/适应症): 属性 [name] (如: 上火, 失眠)
-        5. Efficacy (功效类别): 属性 [name] (如: 清热解毒)
+        图谱包含以下节点标签(Labels，需用反引号包裹)：
+        1. `代茶饮`: 属性 [名称]（如：姜枣茶、枸杞子茶）
+        2. `中药材`: 属性 [名称]（如：枸杞、生姜、菊花）
+        3. `功效`: 属性 [名称]（如：补血益气、养肝明目）
+        4. `适用人群`: 属性 [名称]（如：作家、电脑族、女性上班族）
+        5. `禁忌人群`: 属性 [名称]（如：熬夜人群、脾胃虚寒者）
 
-        图谱包含以下关系类型(Relationships)：
-        1. (:Tea)-[:COMPOSED_OF]->(:Ingredient) : 代茶饮由药材组成
-        2. (:Tea)-[:SUITABLE_FOR]->(:Season) : 代茶饮适合的季节
-        3. (:Tea)-[:TREATS]->(:Symptom) : 代茶饮治疗的症状
-        4. (:Tea)-[:HAS_EFFICACY]->(:Efficacy) : 代茶饮具有的功效
+        图谱包含以下关系类型(Relationships，需用反引号包裹)：
+        1. (:`代茶饮`)-[:`原料`]->(:`中药材`) : 代茶饮的原料是某中药材
+        2. (:`代茶饮`)-[:`益处`]->(:`功效`) : 代茶饮的益处（功效）是某功效
+        3. (:`代茶饮`)-[:`的适用人群`]->(:`适用人群`) : 代茶饮适合的人群
+        4. (:`代茶饮`)-[:`不适合人群`]->(:`禁忌人群`) : 代茶饮不适合的人群
         """
 
     def _get_cypher_from_llm(self, user_question):
         """
         调用 LLM 将自然语言转换为 Cypher 语句
         """
+        # 适配你库结构的系统提示词
         system_prompt = f"""
-        你是一个 Neo4j Cypher 专家助手。你的任务是将用户的自然语言问题转换为 Neo4j Cypher 查询语句。
+        你是一个 Neo4j Cypher 专家助手，必须严格适配以下图谱Schema，生成能直接执行的Cypher语句。
 
         {self.schema_definition}
 
         规则：
-        1. 只返回 Cypher 语句，不要包含 markdown 格式（如 ```cypher），不要包含任何解释。
-        2. 使用模糊匹配时请使用 CONTAINS。
-        3. 始终限制返回结果数量，例如 LIMIT 5。
-        4. 如果问题涉及推荐（如“适合喝什么”），请返回 Tea 节点的 name 和 efficacy 属性。
+        1. 只返回Cypher语句，无markdown格式、无解释，直接输出可执行代码。
+        2. 中文节点标签、关系必须用反引号（`）包裹（如:`代茶饮`、:`原料`），否则会语法错误。
+        3. 模糊匹配用 CONTAINS（如匹配含“枸杞”的代茶饮：n.名称 CONTAINS '枸杞'）。
+        4. 结果限制为 LIMIT 10，避免数据过多。
+        5. 关系对应规则：
+           - 问“原料/组成”→ 用:`原料`关系
+           - 问“功效/益处”→ 用:`益处`关系
+           - 问“适合什么人”→ 用:`的适用人群`关系
+           - 问“不适合什么人”→ 用:`不适合人群`关系
+        6. 推荐类问题需返回`代茶饮`.名称 + 对应关联节点的属性（如功效、人群）。
 
-        示例：
-        用户：金银花茶有什么功效？
-        Cypher: MATCH (n:Tea {{name: '金银花茶'}}) RETURN n.efficacy
+        示例（完全适配你的库结构）：
+        用户：姜枣茶的原料是什么？
+        Cypher: MATCH (t:`代茶饮` {{名称: '姜枣茶'}})-[:`原料`]->(i:`中药材`) RETURN t.名称, i.名称 LIMIT 10
 
-        用户：夏季适合喝什么茶？
-        Cypher: MATCH (t:Tea)-[:SUITABLE_FOR]->(s:Season {{name: '夏季'}}) RETURN t.name, t.efficacy
+        用户：枸杞子茶有什么益处？
+        Cypher: MATCH (t:`代茶饮` {{名称: '枸杞子茶'}})-[:`益处`]->(e:`功效`) RETURN t.名称, e.名称 LIMIT 10
+
+        用户：电脑族适合喝什么代茶饮？
+        Cypher: MATCH (t:`代茶饮`)-[:`的适用人群`]->(s:`适用人群`) WHERE s.名称 CONTAINS '电脑族' RETURN t.名称, s.名称 LIMIT 10
+
+        用户：玫瑰薄荷茶不适合什么人喝？
+        Cypher: MATCH (t:`代茶饮` {{名称: '玫瑰薄荷茶'}})-[:`不适合人群`]->(tab:`禁忌人群`) RETURN t.名称, tab.名称 LIMIT 10
         """
 
         try:
@@ -68,10 +80,10 @@ class KBQAService:
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_question}
                 ],
-                temperature=0  # 设置为0以保证输出稳定性
+                temperature=0  # 保证输出稳定
             )
             cypher = response.choices[0].message.content.strip()
-            # 清理可能存在的 markdown 符号
+            # 清理冗余格式
             cypher = cypher.replace("```cypher", "").replace("```", "").strip()
             logger.info(f"生成的 Cypher: {cypher}")
             return cypher
@@ -79,6 +91,7 @@ class KBQAService:
             logger.error(f"LLM 生成 Cypher 失败: {str(e)}")
             raise
 
+    # 以下 _execute_cypher、_generate_natural_answer、answer 方法保持不变
     def _execute_cypher(self, cypher):
         """
         执行查询并格式化结果
@@ -107,6 +120,9 @@ class KBQAService:
         数据库查询结果：{json.dumps(graph_data, ensure_ascii=False)}
 
         请生成回答：
+        1. 若结果包含多个代茶饮，分点列出，每个代茶饮对应说明其关联信息（如原料、益处、适用人群）。
+        2. 若某代茶饮的属性缺失（如无禁忌人群），无需提及该属性。
+        3. 语言简洁，避免使用专业术语堆砌，让普通用户容易理解。
         """
 
         try:
