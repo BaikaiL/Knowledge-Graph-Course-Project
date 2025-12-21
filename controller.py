@@ -2,6 +2,8 @@
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware  # 新增跨域配置（可选但推荐）
+
+from embedding.vector_manager import VectorManager
 from question import get_qa_answer_stream  # 确保qa_engine.py和controller.py在同一目录
 import logging
 import uvicorn
@@ -23,6 +25,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+vec_mgr = VectorManager(
+    uri="bolt://10.252.172.153:7687",
+    user="neo4j",
+    password="88888888",
+    api_key="sk-93df5702a17d46678b356d19bad90d30"
+)
+
 # 核心接口：代茶饮问答（流式返回）
 @app.get("/api/qa", summary="代茶饮知识问答接口（流式返回）")
 async def qa_interface(
@@ -33,6 +42,20 @@ async def qa_interface(
     :param question: 用户的问题（必填，1-500字符）
     :return: 流式文本响应
     """
+    matches = vec_mgr.search(question, top_k=1, threshold=0.75)
+
+    matched_info = ""
+    if matches:
+        best_match = matches[0]['name']
+        score = matches[0]['score']
+        print(f"命中知识点: {best_match} (相似度: {score:.2f})")
+
+        # 构造提示词，告诉 LLM 我们已经找到了标准词
+        matched_info = f"\n【重要提示】：系统检测到用户可能在查询功效属性：'{best_match}'，请优先使用此名称生成查询语句。"
+    else:
+        print("未匹配到明显的功效术语，将完全依赖 LLM 理解。")
+
+
     try:
         # 调用引擎层的流式生成方法
         return StreamingResponse(

@@ -37,10 +37,10 @@ def init_qa_service():
             return  # 已初始化，直接返回
         try:
             # 1. 数据库连接管理器
-            default_ip = "localhost"
+            # default_ip = "localhost"
             remote_ip = "10.252.172.153"
 
-            conn_manager = ConnectUtils(f"bolt://{default_ip}:7687", "neo4j", "88888888")
+            conn_manager = ConnectUtils(f"bolt://{remote_ip}:7687", "neo4j", "88888888")
             conn_manager.connect()
             # 2. LLM客户端
             client = OpenAI(
