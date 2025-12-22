@@ -34,6 +34,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 28px;
+  min-height: 100vh;
 }
 
 .hero {
@@ -113,6 +114,59 @@ body {
   animation: rise-in 600ms ease-out;
 }
 
+.chat-panel {
+  flex: 1;
+  min-height: 320px;
+}
+
+.chat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 280px;
+  max-height: 52vh;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.empty {
+  color: #6f7a86;
+  text-align: center;
+  padding: 60px 0;
+}
+
+.message {
+  display: flex;
+}
+
+.message[data-role='user'] {
+  justify-content: flex-end;
+}
+
+.message[data-role='assistant'] {
+  justify-content: flex-start;
+}
+
+.bubble {
+  max-width: 78%;
+  padding: 14px 18px;
+  border-radius: 18px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.message[data-role='user'] .bubble {
+  background: #101620;
+  color: #ffffff;
+  border-bottom-right-radius: 6px;
+}
+
+.message[data-role='assistant'] .bubble {
+  background: #f4efe6;
+  color: #1a212b;
+  border-bottom-left-radius: 6px;
+}
+
 .label {
   font-weight: 600;
 }
@@ -169,34 +223,24 @@ button:disabled {
   font-weight: 600;
 }
 
-.output {
-  position: relative;
-}
-
-.output-header {
+.quick {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
-.output h2 {
-  margin: 0;
+.pill-btn {
+  background: #ffffff;
+  border: 1px solid rgba(16, 22, 32, 0.15);
+  color: #101620;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  box-shadow: 0 6px 14px rgba(16, 22, 32, 0.08);
 }
 
-.hint {
-  color: #7a8794;
-  font-size: 0.9rem;
-}
-
-.answer {
-  margin: 0;
-  padding: 18px;
-  border-radius: 16px;
-  background: #0f141c;
-  color: #f6f4ef;
-  min-height: 180px;
-  white-space: pre-wrap;
+.pill-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
 }
 
 @keyframes float-in {

@@ -1,4 +1,15 @@
 import os
+from dotenv import load_dotenv
+
+
+
+_BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+_ENV_PATH = os.path.join(_BASE_DIR, ".env")
+
+if os.path.exists(_ENV_PATH):
+    if load_dotenv is None:
+        raise RuntimeError("python-dotenv is required to load .env")
+    load_dotenv(_ENV_PATH)
 
 
 def _get_env(name, default=None):
