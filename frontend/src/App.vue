@@ -1,7 +1,6 @@
 <script setup>
 import { computed, onBeforeUnmount, reactive, ref } from 'vue'
 
-const apiBase = import.meta.env.VITE_API_BASE || 'http://localhost:8001'
 
 const question = ref('')
 const status = ref('idle')
@@ -66,7 +65,7 @@ const ask = async (preset) => {
   status.value = 'loading'
 
   try {
-    const url = `${apiBase}/api/qa?question=${encodeURIComponent(value)}`
+    const url = `/api/qa?question=${encodeURIComponent(value)}`
     const response = await fetch(url, { signal: abortController.signal })
 
     if (!response.ok || !response.body) {
@@ -129,9 +128,6 @@ onBeforeUnmount(() => {
       <div>
         <p class="eyebrow">知识图谱问答</p>
         <h1>中药代茶饮智能推荐系统</h1>
-        <p class="subtitle">
-          当前接口地址：<span class="pill">{{ apiBase }}</span>
-        </p>
       </div>
       <div class="status" :data-state="status">
         <span v-if="status === 'loading'">正在生成回答...</span>
