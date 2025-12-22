@@ -2,6 +2,7 @@ from utils.ConnectUtils import ConnectUtils
 from utils.KBQAService import KBQAService
 from openai import OpenAI
 import os
+from utils.config import NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, DASHSCOPE_API_KEY, DASHSCOPE_BASE_URL
 import logging
 import threading
 
@@ -10,16 +11,10 @@ import threading
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# 全局初始化（避免每次请求重复创建连接/客户端）
-# 1. 数据库连接管理器（全局单例）
-# conn_manager = ConnectUtils("bolt://localhost:7687", "neo4j", "88888888")
-# # 2. LLM客户端（全局单例）
-# client = OpenAI(
-#     api_key="sk-93df5702a17d46678b356d19bad90d30",  # 替换为你的真实API Key
-#     base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"  # 通义千问的兼容地址
-# )
+# Global initialization (avoid recreating clients per request)
+# conn_manager = ConnectUtils(...)
+# client = OpenAI(...)
 
-# 单例锁：避免reload时重复初始化
 _init_lock = threading.Lock()
 _qa_service_initialized = False  # 标记是否已初始化
 
@@ -37,15 +32,12 @@ def init_qa_service():
             return  # 已初始化，直接返回
         try:
             # 1. 数据库连接管理器
-            # default_ip = "localhost"
-            remote_ip = "10.252.172.153"
-
-            conn_manager = ConnectUtils(f"bolt://{remote_ip}:7687", "neo4j", "88888888")
+            conn_manager = ConnectUtils(NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD)
             conn_manager.connect()
             # 2. LLM客户端
             client = OpenAI(
-                api_key="sk-93df5702a17d46678b356d19bad90d30",  # 替换为你的真实API Key
-                base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
+                api_key=DASHSCOPE_API_KEY,
+                base_url=DASHSCOPE_BASE_URL
             )
             # 3. QA服务实例
             qa_service = KBQAService(conn_manager, client)

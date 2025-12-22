@@ -8,6 +8,7 @@ from question import get_qa_answer_stream  # 确保qa_engine.py和controller.py�
 import logging
 import uvicorn
 import os
+from utils.config import NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, DASHSCOPE_API_KEY
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -26,10 +27,10 @@ app.add_middleware(
 )
 
 vec_mgr = VectorManager(
-    uri="bolt://10.252.172.153:7687",
-    user="neo4j",
-    password="88888888",
-    api_key="sk-93df5702a17d46678b356d19bad90d30"
+    uri=NEO4J_URI,
+    user=NEO4J_USER,
+    password=NEO4J_PASSWORD,
+    api_key=DASHSCOPE_API_KEY
 )
 
 # 核心接口：代茶饮问答（流式返回）

@@ -3,6 +3,7 @@ import pandas as pd
 import math
 from typing import List, Dict
 from neo4j.exceptions import ServiceUnavailable
+from utils.config import NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
 
 # 导入独立工具类
 from utils.ConnectUtils import ConnectUtils
@@ -11,9 +12,9 @@ from utils.BatchHandler import Neo4jBatchHandler
 
 # -------------------------- 全局配置（集中管理） --------------------------
 NEO4J_CONFIG = {
-    "uri": "bolt://localhost:7687",
-    "user": "neo4j",
-    "password": "88888888"
+    "uri": NEO4J_URI,
+    "user": NEO4J_USER,
+    "password": NEO4J_PASSWORD
 }
 
 BATCH_CONFIG = {

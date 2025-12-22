@@ -1,10 +1,5 @@
 from vector_manager import VectorManager
-
-# 配置信息
-NEO4J_URI = "bolt://10.252.172.153:7687"  # 或者是远程IP
-NEO4J_USER = "neo4j"
-NEO4J_PASSWORD = "88888888"
-DASHSCOPE_API_KEY = "sk-93df5702a17d46678b356d19bad90d30"  # 填入你的 Key
+from utils.config import NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, DASHSCOPE_API_KEY
 
 
 def reset_and_initialize():
