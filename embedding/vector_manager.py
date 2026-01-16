@@ -16,9 +16,7 @@ class VectorManager:
         if not self.api_key:
             raise ValueError("错误：未找到 DashScope API Key，请在初始化时传入或设置环境变量。")
 
-        # 指定模型版本，如果阿里云发布了 v4 请保持此名称，目前常用的是 v3
-        # 注意：不同模型的维度不同，v3/v4 通常为 1024 维
-        self.model_name = 'text-embedding-v3'
+        self.model_name = 'text-embedding-v4'
         self.dimension = 1024
 
     def close(self):

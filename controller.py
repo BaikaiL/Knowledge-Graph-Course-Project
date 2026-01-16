@@ -70,11 +70,9 @@ async def qa_interface(
 # 启动服务（关键修改：模块名改为controller，适配文件名）
 if __name__ == "__main__":
 
-    # 修复：将"qa_controller:app"改为"controller:app"（对应文件名controller.py）
-    # 新增：关闭reload模式（避免重复初始化数据库），开发时如需reload需额外处理
     uvicorn.run(
-        "controller:app",  # 核心修改！模块名=文件名（无.py）
+        "controller:app",
         host="0.0.0.0",    # 允许外部访问
         port=8001,         # 你指定的端口
-        reload=False       # 先关闭reload，避免重复连接数据库（后续可优化）
+        reload=False       # 先关闭reload，避免重复连接数据库
     )

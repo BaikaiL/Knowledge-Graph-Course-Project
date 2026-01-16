@@ -309,7 +309,7 @@ class Neo4jBatchHandler:
             logger.warning(f"关系过滤完成：共跳过{len(skipped_rels)}个无效关系，原因：{skipped_rels}")
         # 汇总日志
         logger.info(
-            f"✅ 关系创建完成：总计{len(all_rel_ids)}条（新增{created_count}个，复用{reused_count}个），"
+            f"关系创建完成：总计{len(all_rel_ids)}条（新增{created_count}个，复用{reused_count}个），"
             f"跳过无效关系{len(skipped_rels)}条"
         )
         return all_rel_ids

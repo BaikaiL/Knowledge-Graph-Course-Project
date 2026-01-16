@@ -64,7 +64,7 @@ def read_csv_for_node_props(csv_path: str, unique_key: str) -> List[Dict]:
     df = df.fillna("")
     prop_data = df.to_dict("records")
     logger.info(
-        f"✅ 成功读取属性CSV[{csv_path}]：共{len(prop_data)}条数据，"
+        f"成功读取属性CSV[{csv_path}]：共{len(prop_data)}条数据，"
         f"属性列：{[col for col in df.columns if col != unique_key]}"
     )
     return prop_data
@@ -111,7 +111,7 @@ def main():
         if BUSINESS_CONFIG["clear_db"]:
             logger.info("\n=== 清空数据库（测试用） ===")
             deleted_count = curd_utils.clear_all_data()
-            logger.info(f"✅ 清空完成，删除节点数：{deleted_count}")
+            logger.info(f"清空完成，删除节点数：{deleted_count}")
         else:
             logger.info("\n=== 跳过清空数据库 ===")
 
@@ -125,7 +125,7 @@ def main():
                 "herbs_str": row[BUSINESS_CONFIG["basic_herb_col"]]
             }, axis=1
         ).tolist()
-        logger.info(f"✅ 读取基础数据：共{len(drink_herb_data)}条代茶饮记录")
+        logger.info(f"读取基础数据：共{len(drink_herb_data)}条代茶饮记录")
 
         # ===================== 模块4：创建代茶饮节点（可选，注释即关闭） =====================
         logger.info("\n=== 批量创建代茶饮节点 ===")
@@ -150,7 +150,7 @@ def main():
             retry_times=BATCH_CONFIG["retry_times"],
             retry_delay=BATCH_CONFIG["retry_delay"]
         )
-        logger.info(f"✅ 代茶饮节点创建完成：共{len(drink_unique_to_id)}个（拆分去重后）")
+        logger.info(f"代茶饮节点创建完成：共{len(drink_unique_to_id)}个（拆分去重后）")
 
         # ===================== 模块5：创建中药材节点（可选，注释即关闭） =====================
         logger.info("\n=== 批量创建中药材节点 ===")
@@ -169,7 +169,7 @@ def main():
             retry_times=BATCH_CONFIG["retry_times"],
             retry_delay=BATCH_CONFIG["retry_delay"]
         )
-        logger.info(f"✅ 中药材节点创建完成：共{len(herb_unique_to_id)}个")
+        logger.info(f"中药材节点创建完成：共{len(herb_unique_to_id)}个")
 
         # ===================== 模块6：创建原料关系（可选，注释即关闭） =====================
         # ===================== 模块6：创建原料关系（可选，注释即关闭） =====================
@@ -229,41 +229,15 @@ def main():
                 retry_times=BATCH_CONFIG["retry_times"],
                 retry_delay=BATCH_CONFIG["retry_delay"]
             )
-            logger.info(f"✅ 原料关系创建完成：共{len(rel_ids)}个（跳过无效关系{skipped_rel}个）")
+            logger.info(f"原料关系创建完成：共{len(rel_ids)}个（跳过无效关系{skipped_rel}个）")
         else:
-            logger.warning(f"⚠️ 无有效原料关系可创建（共跳过{skipped_rel}个无效关系）")
-
-        # # ===================== 模块7：批量更新节点属性（可选，注释即关闭） =====================
-        # logger.info(f"\n=== 批量更新[{BUSINESS_CONFIG['prop_update_label']}]节点属性 ===")
-        # # 步骤1：读取属性CSV
-        # prop_data = read_csv_for_node_props(
-        #     csv_path=BUSINESS_CONFIG["prop_data_path"],
-        #     unique_key=BUSINESS_CONFIG["unique_key"]
-        # )
-        # # 步骤2：执行批量更新（自动跳过不存在的节点）
-        # updated_count = batch_handler.batch_update_node_props(
-        #     label=BUSINESS_CONFIG["prop_update_label"],
-        #     prop_data=prop_data,
-        #     unique_key=BUSINESS_CONFIG["unique_key"],
-        #     batch_size=BATCH_CONFIG["batch_size"],
-        #     retry_times=BATCH_CONFIG["retry_times"],
-        #     retry_delay=BATCH_CONFIG["retry_delay"]
-        # )
-        # logger.info(f"✅ 属性更新完成：共处理{len(prop_data)}条，成功更新{updated_count}个节点")
-        #
-        # # ===================== 模块8：结果汇总（可选，注释即关闭） =====================
-        # logger.info("\n=== 所有操作完成（结果汇总） ===")
-        # logger.info(f"📊 代茶饮节点数：{len(drink_unique_to_id)}")
-        # logger.info(f"📊 中药材节点数：{len(herb_unique_to_id)}")
-        # logger.info(f"📊 原料关系数：{len(rel_ids)}")
-        # logger.info(f"📊 成功更新属性的节点数：{updated_count}")
+            logger.warning(f"无有效原料关系可创建（共跳过{skipped_rel}个无效关系）")
 
     except ServiceUnavailable:
-        logger.error("❌ Neo4j服务不可用，请检查连接地址和服务状态")
+        logger.error("Neo4j服务不可用，请检查连接地址和服务状态")
     except Exception as e:
-        logger.error(f"❌ 业务逻辑执行失败：{str(e)}", exc_info=True)
+        logger.error(f"业务逻辑执行失败：{str(e)}", exc_info=True)
     finally:
-        # ===================== 模块9：关闭连接（必选，不可注释） =====================
         if conn_manager and conn_manager.driver:
             logger.info("\n=== 关闭Neo4j连接 ===")
             conn_manager.close()

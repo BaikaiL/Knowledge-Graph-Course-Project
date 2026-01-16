@@ -169,7 +169,6 @@ class CurdUtils:
         except (Neo4jError, ServiceUnavailable) as e:
             raise Exception(f"清空数据库失败：{str(e)}")
 
-    # 【备选】如果想基于原有delete_entity循环删除（仅小数据量测试用，效率低）
     def delete_all_nodes_cycle(self):
         """
         循环删除所有节点（依赖原有delete_entity方法，效率低，不推荐）
